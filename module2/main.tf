@@ -4,6 +4,7 @@ provider "aws" {
 
 data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
+data "aws_availability_zones" "available" {}
 
 ####################################################
 # Lambda Function (building from source)
@@ -95,16 +96,41 @@ resource "aws_iam_role_policy" "vector_store_cluster_role_policy" {
 
 }
 
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.15.0"
+
+  name = "genai-vpc-${random_pet.this.id}"
+  cidr = local.vpc_cidr
+
+  azs              = local.azs
+  public_subnets   = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k)]
+  private_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 3)]
+  database_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 6)]
+
+  tags = {
+    Application = "set-genai-module2"
+    Module      = "vpc"
+  }
+}
+
 module "aurora_postgresql_v2" {
   source  = "terraform-aws-modules/rds-aurora/aws"
   version = "9.10.0"
 
-  name              = "genai-bedrock-vector-store-${random_pet.this.id}"
-  engine            = data.aws_rds_engine_version.postgresql.engine
-  engine_mode       = "provisioned"
-  engine_version    = data.aws_rds_engine_version.postgresql.version
-  storage_encrypted = true
-  master_username   = "postgres"
+  name                 = "genai-bedrock-vector-store-${random_pet.this.id}"
+  engine               = data.aws_rds_engine_version.postgresql.engine
+  engine_mode          = "provisioned"
+  engine_version       = data.aws_rds_engine_version.postgresql.version
+  storage_encrypted    = true
+  master_username      = "postgres"
+  vpc_id               = module.vpc.vpc_id
+  db_subnet_group_name = module.vpc.database_subnet_group_name
+  security_group_rules = {
+    vpc_ingress = {
+      cidr_blocks = module.vpc.private_subnets_cidr_blocks
+    }
+  }
 
   apply_immediately   = true
   skip_final_snapshot = true
@@ -199,6 +225,7 @@ resource "aws_s3_object" "object" {
   key    = "postgresql-16-A4.pdf"
   source = "documents/postgresql-16-A4.pdf"
   etag = filemd5("documents/postgresql-16-A4.pdf")
+  depends_on = [module.genai_document_bucket]
 }
 
 ####################################
@@ -228,24 +255,81 @@ resource "aws_s3_object" "object" {
 ################
 # Bedrock setup
 ################
-resource "aws_iam_service_linked_role" "bedrock_role" {
-  aws_service_name = "bedrock.amazonaws.com"
+resource "aws_iam_role" "bedrock_service_role" {
+  name = "bedrock-service-role-${random_pet.this.id}"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "bedrock.amazonaws.com"
+        }
+      },
+    ]
+  })
 }
 
 resource "aws_iam_role_policy" "bedrock_service_role_policy" {
   name = "bedrock_service_role_policy"
-  role = aws_iam_service_linked_role.bedrock_role.id
+  role = aws_iam_role.bedrock_service_role.id
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
+        Sid = "BedrockInvokeModelStatement"
         Action = [
-          "ec2:Describe*",
+          "bedrock:InvokeModel",
         ]
-        Effect   = "Allow"
-        Resource = "*"
+        Effect = "Allow"
+        Resource = ["arn:aws:bedrock:${data.aws_region.current.id}::foundation-model/amazon.titan-embed-text-v2:0"]
       },
+      {
+        "Sid" : "RdsDescribeStatementID",
+        "Effect" : "Allow",
+        "Action" : [
+          "rds:DescribeDBClusters"
+        ],
+        "Resource" : [
+          module.aurora_postgresql_v2.cluster_arn
+        ]
+      },
+      {
+        "Sid" : "DataAPIStatementID",
+        "Effect" : "Allow",
+        "Action" : [
+          "rds-data:BatchExecuteStatement",
+          "rds-data:ExecuteStatement"
+        ],
+        "Resource" : [
+          module.aurora_postgresql_v2.cluster_arn
+        ]
+      },
+      {
+        "Sid" : "S3AccessStatement",
+        "Effect" : "Allow",
+        "Action" : [
+          "s3:GetObject",
+          "s3:ListBucket"
+        ],
+        "Resource" : [
+          "arn:aws:s3:::${module.genai_document_bucket.s3_bucket_id}/",
+          "arn:aws:s3:::${module.genai_document_bucket.s3_bucket_id}/*",
+        ]
+      },
+      {
+        "Sid" : "SecretsManagerGetStatement",
+        "Effect" : "Allow",
+        "Action" : [
+          "secretsmanager:GetSecretValue"
+        ],
+        "Resource" : [
+          module.vector_store_bedrock_secret.secret_arn
+        ]
+      }
     ]
   })
 }

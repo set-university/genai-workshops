@@ -36,4 +36,9 @@ output "apigatewayv2_api_api_endpoint" {
   value       = module.api_gateway.apigatewayv2_api_api_endpoint
 }
 
+output "vector_store_cluster_identifier" {
+  description = "Cluster Identified"
+  value       = module.aurora_postgresql_v2.cluster_id
+}
+
 
