@@ -3,6 +3,7 @@ provider "aws" {
 }
 
 data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
 
 ####################################################
 # Lambda Function (building from source)
@@ -56,6 +57,44 @@ data "aws_rds_engine_version" "postgresql" {
   version = "16.1"
 }
 
+resource "aws_iam_role" "vector_store_cluster_role" {
+  name = "genai-cluster-role-${random_pet.this.id}"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "rds.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "vector_store_cluster_role_policy" {
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "bedrock:InvokeModel",
+        ]
+        Effect   = "Allow"
+        Resource = [
+          "arn:aws:bedrock:*:${data.aws_caller_identity.current.account_id}:provisioned-model/*",
+          "arn:aws:bedrock:*::foundation-model/*"
+        ]
+      },
+    ]
+  })
+  role   = aws_iam_role.vector_store_cluster_role.id
+
+}
+
 module "aurora_postgresql_v2" {
   source  = "terraform-aws-modules/rds-aurora/aws"
   version = "9.10.0"
@@ -66,8 +105,6 @@ module "aurora_postgresql_v2" {
   engine_version    = data.aws_rds_engine_version.postgresql.version
   storage_encrypted = true
   master_username   = "postgres"
-
-  monitoring_interval = 60
 
   apply_immediately   = true
   skip_final_snapshot = true
@@ -84,10 +121,64 @@ module "aurora_postgresql_v2" {
     one = {}
   }
 
+  iam_roles = {
+    rds_cluster_role = {
+      feature_name          = "BEDROCK"
+      role_arn = aws_iam_role.vector_store_cluster_role.arn
+    }
+  }
+
   tags = {
     Application = "set-genai-module2"
     Module      = "rds_aurora"
   }
+}
+
+module "vector_store_bedrock_secret" {
+  source = "terraform-aws-modules/secrets-manager/aws"
+  version = "1.3.1"
+
+  # Secret
+  name_prefix                      = "bedrock-secret-${random_pet.this.id}"
+  description                      = "Vector Store bedrock secret"
+  recovery_window_in_days          = 30
+  secret_string = jsonencode({
+    engine   = "postgres",
+    host     = module.aurora_postgresql_v2.cluster_endpoint,
+    username = "bedrock_user",
+    password = "bedrock_user"
+    dbname   = module.aurora_postgresql_v2.cluster_id,
+    port     = 5432
+  })
+
+  tags = {
+    Application = "set-genai-module2"
+    Module      = "vector_store_bedrock_secret"
+  }
+
+  depends_on = [module.aurora_postgresql_v2]
+
+}
+
+resource "null_resource" "db_setup" {
+  triggers = {
+    file = filesha1("scripts/bedrock.sql")
+  }
+  provisioner "local-exec" {
+    command = <<-EOF
+			while read line; do
+				echo "$line"
+				aws rds-data execute-statement --resource-arn "$DB_ARN" --database  "$DB_NAME" --secret-arn "$SECRET_ARN" --sql "$line"
+			done  < <(awk 'BEGIN{RS=";\n"}{gsub(/\n/,""); if(NF>0) {print $0";"}}' initial.sql)
+			EOF
+    environment = {
+      DB_ARN     = module.aurora_postgresql_v2.cluster_arn
+      DB_NAME    = module.aurora_postgresql_v2.cluster_database_name
+      SECRET_ARN = module.vector_store_bedrock_secret.secret_arn
+    }
+    interpreter = ["bash", "-c"]
+  }
+  depends_on = [module.vector_store_bedrock_secret]
 }
 
 ##########################
@@ -114,41 +205,25 @@ resource "aws_s3_object" "object" {
 # Secrets Manager
 ####################################
 
-module "vector_store_master_secret" {
-  source = "terraform-aws-modules/secrets-manager/aws"
-  version = "1.3.1"
+# module "vector_store_master_secret" {
+#   source = "terraform-aws-modules/secrets-manager/aws"
+#   version = "1.3.1"
+#
+#   # Secret
+#   name_prefix             = "master-secret-${random_pet.this.id}"
+#   description             = "Vector Store master secret"
+#   recovery_window_in_days = 30
+#   secret_string           = module.aurora_postgresql_v2.cluster_master_password
+#
+#   tags = {
+#     Application = "set-genai-module2"
+#     Module      = "vector_store_master_secret"
+#   }
+#
+#   depends_on = [module.aurora_postgresql_v2]
+# }
 
-  # Secret
-  name_prefix             = "master-secret-${random_pet.this.id}"
-  description             = "Vector Store master secret"
-  recovery_window_in_days = 30
-  secret_string           = module.aurora_postgresql_v2.cluster_master_password
 
-  tags = {
-    Application = "set-genai-module2"
-    Module      = "vector_store_master_secret"
-  }
-
-  depends_on = [module.aurora_postgresql_v2]
-}
-
-module "vector_store_bedrock_secret" {
-  source = "terraform-aws-modules/secrets-manager/aws"
-  version = "1.3.1"
-
-  # Secret
-  name_prefix                      = "bedrock-secret-${random_pet.this.id}"
-  description                      = "Vector Store bedrock secret"
-  recovery_window_in_days          = 30
-  create_random_password           = true
-  random_password_length           = 64
-  random_password_override_special = "!@#$%^&*()_+"
-
-  tags = {
-    Application = "set-genai-module2"
-    Module      = "vector_store_bedrock_secret"
-  }
-}
 
 ################
 # Bedrock setup
@@ -175,33 +250,33 @@ resource "aws_iam_role_policy" "bedrock_service_role_policy" {
   })
 }
 
-resource "awscc_bedrock_knowledge_base" "genai-bedrock-kb" {
-  name        = "genai-bedrock-kb-${random_pet.this.id}"
-  description = "GenAI Bedrock knowledge base"
-  role_arn    = aws_iam_service_linked_role.bedrock_role.arn
-
-  storage_configuration = {
-    type = "RDS"
-    rds_configuration = {
-      credentials_secret_arn = module.vector_store_bedrock_secret.secret_arn
-      database_name          = "postgres"
-      resource_arn           = module.aurora_postgresql_v2.cluster_arn
-      table_name             = "bedrock_integration.bedrock_kb"
-      field_mapping = {
-        primary_key_field = "id"
-        text_field        = "chunks"
-        vector_field      = "embedding"
-        metadata_field    = "metadata"
-      }
-    }
-  }
-  knowledge_base_configuration = {
-    type = "VECTOR"
-    vector_knowledge_base_configuration = {
-      embedding_model_arn = "arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-image-generator-v2:0"
-    }
-  }
-}
+# resource "awscc_bedrock_knowledge_base" "genai-bedrock-kb" {
+#   name        = "genai-bedrock-kb-${random_pet.this.id}"
+#   description = "GenAI Bedrock knowledge base"
+#   role_arn    = aws_iam_service_linked_role.bedrock_role.arn
+#
+#   storage_configuration = {
+#     type = "RDS"
+#     rds_configuration = {
+#       credentials_secret_arn = module.vector_store_bedrock_secret.secret_arn
+#       database_name          = "postgres"
+#       resource_arn           = module.aurora_postgresql_v2.cluster_arn
+#       table_name             = "bedrock_integration.bedrock_kb"
+#       field_mapping = {
+#         primary_key_field = "id"
+#         text_field        = "chunks"
+#         vector_field      = "embedding"
+#         metadata_field    = "metadata"
+#       }
+#     }
+#   }
+#   knowledge_base_configuration = {
+#     type = "VECTOR"
+#     vector_knowledge_base_configuration = {
+#       embedding_model_arn = "arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-image-generator-v2:0"
+#     }
+#   }
+# }
 
 
 ###################
