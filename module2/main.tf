@@ -83,7 +83,7 @@ resource "aws_iam_role_policy" "vector_store_cluster_role_policy" {
         Action = [
           "bedrock:InvokeModel",
         ]
-        Effect   = "Allow"
+        Effect = "Allow"
         Resource = [
           "arn:aws:bedrock:*:${data.aws_caller_identity.current.account_id}:provisioned-model/*",
           "arn:aws:bedrock:*::foundation-model/*"
@@ -91,7 +91,7 @@ resource "aws_iam_role_policy" "vector_store_cluster_role_policy" {
       },
     ]
   })
-  role   = aws_iam_role.vector_store_cluster_role.id
+  role = aws_iam_role.vector_store_cluster_role.id
 
 }
 
@@ -123,8 +123,8 @@ module "aurora_postgresql_v2" {
 
   iam_roles = {
     rds_cluster_role = {
-      feature_name          = "BEDROCK"
-      role_arn = aws_iam_role.vector_store_cluster_role.arn
+      feature_name = "BEDROCK"
+      role_arn     = aws_iam_role.vector_store_cluster_role.arn
     }
   }
 
@@ -139,9 +139,9 @@ module "vector_store_bedrock_secret" {
   version = "1.3.1"
 
   # Secret
-  name_prefix                      = "bedrock-secret-${random_pet.this.id}"
-  description                      = "Vector Store bedrock secret"
-  recovery_window_in_days          = 30
+  name_prefix             = "bedrock-secret-${random_pet.this.id}"
+  description             = "Vector Store bedrock secret"
+  recovery_window_in_days = 30
   secret_string = jsonencode({
     engine   = "postgres",
     host     = module.aurora_postgresql_v2.cluster_endpoint,
