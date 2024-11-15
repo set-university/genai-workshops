@@ -149,7 +149,7 @@ module "aurora_postgresql_v2" {
 
   iam_roles = {
     rds_cluster_role = {
-      feature_name = "BEDROCK"
+      feature_name = "SageMaker"
       role_arn     = aws_iam_role.vector_store_cluster_role.arn
     }
   }
@@ -194,17 +194,18 @@ resource "null_resource" "db_setup" {
     command = <<-EOF
 			while read line; do
 				echo "$line"
-				aws rds-data execute-statement --resource-arn "$DB_ARN" --database  "$DB_NAME" --secret-arn "$SECRET_ARN" --sql "$line"
-			done  < <(awk 'BEGIN{RS=";\n"}{gsub(/\n/,""); if(NF>0) {print $0";"}}' initial.sql)
+				aws rds-data execute-statement --region "$REGION" --resource-arn "$DB_ARN" --database  "$DB_NAME" --secret-arn "$SECRET_ARN" --sql "$line"
+			done  < <(awk 'BEGIN{RS=";\n"}{gsub(/\n/,""); if(NF>0) {print $0";"}}' scripts/bedrock.sql)
 			EOF
     environment = {
       DB_ARN     = module.aurora_postgresql_v2.cluster_arn
       DB_NAME    = module.aurora_postgresql_v2.cluster_database_name
-      SECRET_ARN = module.vector_store_bedrock_secret.secret_arn
+      SECRET_ARN = module.aurora_postgresql_v2.cluster_master_user_secret[0].secret_arn
+      REGION = data.aws_region.current.id
     }
     interpreter = ["bash", "-c"]
   }
-  depends_on = [module.vector_store_bedrock_secret]
+  depends_on = [module.aurora_postgresql_v2]
 }
 
 ##########################
