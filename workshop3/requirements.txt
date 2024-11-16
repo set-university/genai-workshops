@@ -1,0 +1,12 @@
+langchain
+langchain-community
+langchain-core
+langchain-aws
+boto3
+python-dotenv
+fastapi
+uvicorn[standard]
+pydantic
+deepeval
+pytest
+pytest-asyncio
