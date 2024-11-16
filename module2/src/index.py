@@ -1,7 +1,8 @@
-import json
 import boto3
+import os
 
 client = boto3.client('bedrock-agent-runtime')
+
 
 def handler(event, context):
     prompt = event['body']['prompt']
@@ -11,8 +12,8 @@ def handler(event, context):
         },
         retrieveAndGenerateConfiguration={
             'knowledgeBaseConfiguration': {
-                'knowledgeBaseId': 'VVC6N0LJJ9',
-                'modelArn': 'arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-sonnet-20240620-v1:0'
+                'knowledgeBaseId': os.getenv('BEDROCK_KB_ID'),
+                'modelArn': os.getenv('GEN_AI_MODEL_ARN')
             },
             'type': 'KNOWLEDGE_BASE'
         }
