@@ -293,6 +293,7 @@ resource "aws_iam_role_policy" "bedrock_service_role_policy" {
           "s3:ListBucket"
         ],
         "Resource" : [
+          "arn:aws:s3:::${module.genai_document_bucket.s3_bucket_id}",
           "arn:aws:s3:::${module.genai_document_bucket.s3_bucket_id}/",
           "arn:aws:s3:::${module.genai_document_bucket.s3_bucket_id}/*",
         ]
@@ -337,6 +338,20 @@ resource "awscc_bedrock_knowledge_base" "genai-bedrock-kb" {
       embedding_model_arn = "arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-embed-text-v2:0"
     }
   }
+}
+
+resource "awscc_bedrock_data_source" "example" {
+  name              = "genai-bedrock-data-source-${random_pet.this.id}"
+  knowledge_base_id = awscc_bedrock_knowledge_base.genai-bedrock-kb.knowledge_base_id
+  description       = "SET GenAI datasource"
+
+  data_source_configuration = {
+    s3_configuration = {
+      bucket_arn = module.genai_document_bucket.s3_bucket_arn
+    }
+    type = "S3"
+  }
+
 }
 
 
