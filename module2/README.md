@@ -9,9 +9,9 @@ Retrieval Augmented Generation (RAG) to provide relevant answers for your custom
 
 ### Architecture
 
-![architecture](docs/architecture.png)
+<img src="docs/architecture.png" alt="Bedrock selection" style="width:50%; height: auto;"/>
 
-As the test file, Postgres PDF tutorial is used.
+As the test file, PostgreSQL PDF tutorial is used.
 
 ### Requirements
 
@@ -30,25 +30,25 @@ see [Model access](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ac
 
 1. In the AWS console, select the region from which you want to access Amazon Bedrock. We recommend to use us-east-1 (N.
    Virginia) region where all Bedrock models are available.
-
-   ![Region Selection](docs/bedrock_setup_1.png)
+   
+   <img src="docs/bedrock_setup_1.png" alt="Region selection" style="width:50%; height: auto;"/>
 
 2. Find **Amazon Bedrock** by searching in the AWS console.
 
-   ![Bedrock Search](docs/bedrock_setup_2.png)
+   <img src="docs/bedrock_setup_2.png" alt="Bedrock selection" style="width:50%; height: auto;"/>
 
 3. Expand the side menu and select **Model access**.
 
-   ![Bedrock Expand Menu](docs/bedrock_setup_3.png)
+   <img src="docs/bedrock_setup_3.png" alt="Model access" style="width:25%; height: auto;"/>
 
 4. Select the **Edit** button.
-
-   ![Model Access View](bedrock_setup/model-access-view.png)
-
 5. Use the checkboxes to select the models you wish to enable. This guideline requires **Titan Text Embeddings V2** and
    **Claude 3.5 Sonnet** models. Click **Save
    changes** to activate the models in your account. Please feel free to
    experiment with other models if you want to.
+6. Wait until the models become available.
+
+   <img src="docs/bedrock_setup_4.png" alt="Model access" style="width:50%; height: auto;"/>
 
 ## Deployment
 
