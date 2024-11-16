@@ -11,6 +11,8 @@ Retrieval Augmented Generation (RAG) to provide relevant answers for your custom
 
 ![architecture](docs/architecture.png)
 
+As the test file, Postgres PDF tutorial is used.
+
 ### Requirements
 
 * [Create an AWS account](https://portal.aws.amazon.com/gp/aws/developer/registration/index.html) if you do not already
