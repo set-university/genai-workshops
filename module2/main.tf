@@ -19,6 +19,7 @@ module "lambda_function" {
   handler       = "index.handler"
   runtime       = "python3.9"
   publish       = true
+  timeout       = 60
 
   source_path = "${path.module}/src"
 
@@ -36,9 +37,14 @@ module "lambda_function" {
   policy_statements = {
     invoke_bedrock_model = {
       effect = "Allow",
-      actions = ["bedrock:InvokeModel"],
+      actions = [
+        "bedrock:RetrieveAndGenerate",
+        "bedrock:Retrieve",
+        "bedrock:InvokeModel"
+      ],
       resources = [
-        "arn:aws:bedrock:${data.aws_region.current.name}::foundation-model/anthropic.claude-3-5-sonnet-20240620-v1:0"
+        "arn:aws:bedrock:${data.aws_region.current.name}::foundation-model/anthropic.claude-3-5-sonnet-20240620-v1:0",
+        "arn:aws:bedrock:us-east-1:257468754611:knowledge-base/VVC6N0LJJ9"
       ]
     }
   }
@@ -169,12 +175,12 @@ module "vector_store_bedrock_secret" {
   description             = "Vector Store bedrock secret"
   recovery_window_in_days = 30
   secret_string = jsonencode({
-    engine   = "postgres",
-    host     = module.aurora_postgresql_v2.cluster_endpoint,
-    username = "bedrock_user",
-    password = "bedrock_user"
-    dbClusterIdentifier   = module.aurora_postgresql_v2.cluster_id,
-    port     = 5432
+    engine              = "postgres",
+    host                = module.aurora_postgresql_v2.cluster_endpoint,
+    username            = "bedrock_user",
+    password            = "bedrock_user"
+    dbClusterIdentifier = module.aurora_postgresql_v2.cluster_id,
+    port                = 5432
   })
 
   tags = {
@@ -201,7 +207,7 @@ resource "null_resource" "db_setup" {
       DB_ARN     = module.aurora_postgresql_v2.cluster_arn
       DB_NAME    = module.aurora_postgresql_v2.cluster_database_name
       SECRET_ARN = module.aurora_postgresql_v2.cluster_master_user_secret[0].secret_arn
-      REGION = data.aws_region.current.id
+      REGION     = data.aws_region.current.id
     }
     interpreter = ["bash", "-c"]
   }
