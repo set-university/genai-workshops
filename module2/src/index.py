@@ -1,11 +1,13 @@
 import boto3
 import os
+import json
 
 client = boto3.client('bedrock-agent-runtime')
 
 
 def handler(event, context):
-    prompt = event['prompt']
+    body = json.loads(event.get('body', '{}'))
+    prompt = body.get('prompt', 'What is postgres?')
     response = client.retrieve_and_generate(
         input={
             'text': prompt
@@ -18,4 +20,11 @@ def handler(event, context):
             'type': 'KNOWLEDGE_BASE'
         }
     )
-    return response['output']['text']
+    print(response)
+    response_body = response.get('output', '{}').get('text', '<Empty text>')
+    return {
+        'statusCode': 200,
+        'body': json.dumps({
+            'genai_response': response_body
+        })
+    }
