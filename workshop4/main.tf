@@ -125,6 +125,8 @@ resource "awscc_bedrock_data_source" "s3_data_source" {
     type = "S3"
   }
 
+  data_deletion_policy = "DELETE"
+
 }
 
 ##################
