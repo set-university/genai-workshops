@@ -53,7 +53,7 @@ resource "aws_iam_role_policy" "bedrock_service_role_policy" {
           "rds-data:ExecuteStatement"
         ],
         "Resource" : [
-          module.aurora_postgresql_v2.cluster_arn
+          "arn:aws:rds:${var.aws_region}:${data.aws_caller_identity.current.account_id}:cluster:*"
         ]
       },
       {

@@ -5,7 +5,7 @@ client = boto3.client('bedrock-agent-runtime')
 
 
 def handler(event, context):
-    prompt = event['body']['prompt']
+    prompt = event['prompt']
     response = client.retrieve_and_generate(
         input={
             'text': prompt
@@ -18,4 +18,4 @@ def handler(event, context):
             'type': 'KNOWLEDGE_BASE'
         }
     )
-    return response
+    return response['output']['text']
