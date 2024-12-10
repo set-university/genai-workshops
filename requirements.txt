@@ -1,0 +1,27 @@
+langchain
+langchain-community
+langchain-core
+langchain-aws
+boto3
+python-dotenv
+fastapi
+uvicorn[standard]
+pydantic
+deepeval
+pytest
+pytest-asyncio
+httpx
+llama-index-core
+llama-index-llms-openai
+pandas
+streamlit
+duckduckgo-search
+requests>=2.31.0
+pandas>=2.1.0
+beautifulsoup4>=4.12.0
+lxml>=4.9.0  # for XML parsing
+llama-index>=0.9.0
+giskard
+litellm
+streamlit>=1.31.0
+
