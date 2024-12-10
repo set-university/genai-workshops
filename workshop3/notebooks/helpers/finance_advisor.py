@@ -3,7 +3,6 @@
 # Function to simulate a conversation
 def get_ai_response(question, llm, prompt, context, history=""):
     from langchain.prompts import PromptTemplate
-    from langchain.llms import OpenAI
     
     input_variables=["context", "history", "question"]
     
@@ -74,5 +73,5 @@ def get_ai_response_secured(question, llm, prompt, context, history=""):
     )
     
     # Get response
-    response = llm(formatted_prompt).with_config({"tags": ["improved_prompt"]})
+    response = llm(formatted_prompt)
     return response
