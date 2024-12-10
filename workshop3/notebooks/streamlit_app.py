@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+import os
 
 # Add the workshop3 directory to Python path
 root_dir = str(Path(__file__).parent.parent)
@@ -17,6 +18,20 @@ def initialize_chat():
 
 def main():
     st.title("ByteChapters Customer Support")
+    
+    # Sidebar for settings
+    with st.sidebar:
+        st.header("Settings")
+        api_key = st.text_input("OpenAI API Key (optional)", type="password")
+        if api_key:
+            os.environ["OPENAI_API_KEY"] = api_key
+            
+        st.divider()
+        
+        if st.button("Reset Conversation"):
+            st.session_state.bot.reset()
+            st.session_state.messages = []
+            st.rerun()
     
     initialize_chat()
 
@@ -42,12 +57,11 @@ def main():
                 st.error(str(e))
                 st.session_state.bot.reset()
                 st.session_state.messages = []
-
-    # Reset button
-    if st.sidebar.button("Reset Conversation"):
-        st.session_state.bot.reset()
-        st.session_state.messages = []
-        st.rerun()
+            except Exception as e:
+                if "openai api key" in str(e).lower():
+                    st.error("Please provide a valid OpenAI API key in the sidebar.")
+                else:
+                    st.error(f"An error occurred: {str(e)}")
 
 if __name__ == "__main__":
     main() 
