@@ -1,0 +1,3 @@
+creds.py
+*.csv
+__pycache__

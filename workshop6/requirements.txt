@@ -1,0 +1,13 @@
+streamlit
+gradio
+transformers
+accelerate
+torch
+diffusers
+Pillow
+openai
+scikit-learn
+matplotlib
+plotly
+# This line installs CLIP directly from GitHub
+git+https://github.com/openai/CLIP.git
