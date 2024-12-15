@@ -1,3 +1,3 @@
-creds.py
+.env
 *.csv
 __pycache__

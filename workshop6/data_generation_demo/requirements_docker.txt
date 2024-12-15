@@ -1,5 +1,0 @@
-pandas
-numpy
-openai
-gradio
-tqdm

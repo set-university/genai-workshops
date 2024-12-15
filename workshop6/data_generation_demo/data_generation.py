@@ -6,8 +6,12 @@ import matplotlib.pyplot as plt #visualisation library
 import openai
 import json
 from tqdm import tqdm #shows progress bars
+from dotenv import load_dotenv
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+load_dotenv()
+# Fetch API key
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+openai.api_key = OPENAI_API_KEY
 
 def generate_product_data_sample(product_id):
     prompt = f"""Generate realistic product data for a retail item with the following ID: {product_id}

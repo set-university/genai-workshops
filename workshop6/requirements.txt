@@ -9,5 +9,6 @@ openai
 scikit-learn
 matplotlib
 plotly
+python-dotenv
 # This line installs CLIP directly from GitHub
 git+https://github.com/openai/CLIP.git

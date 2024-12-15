@@ -34,7 +34,7 @@ docker build -t data-generation-demo .
 To start the container and expose the Gradio app on port `7860`, use the following command:
 
 ```bash
-docker run -p 7860:7860 --e OPENAI_API_KEY=<your-openai-api-key> data-generation-demo
+docker run --rm -it -e OPENAI_API_KEY="<your-openai-api-key>" -p 7860:7860 data-generation-demo
 ```
 
 Replace `<your-openai-api-key>` with your valid OpenAI API key.
@@ -45,7 +45,6 @@ Replace `<your-openai-api-key>` with your valid OpenAI API key.
 
 ### Locally (without Docker)
 ```bash
-export OPENAI_API_KEY=<your-openai-api-key>
 python app.py
 ```
 
