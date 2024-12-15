@@ -1,3 +1,4 @@
 .env
 *.csv
+!tabular_data_demo/*.csv
 __pycache__
