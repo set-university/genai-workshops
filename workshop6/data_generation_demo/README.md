@@ -19,6 +19,17 @@ This is a **Gradio-based web application** that allows users to generate synthet
 
 ---
 
+## Running the App
+
+### Locally (without Docker)
+```bash
+python app.py
+```
+
+The app will be available at `http://localhost:7860` in your browser.
+
+---
+
 ## Docker Setup Guide
 
 ### 1. Build the Docker Image
@@ -38,22 +49,6 @@ docker run --rm -it -e OPENAI_API_KEY="<your-openai-api-key>" -p 7860:7860 data-
 ```
 
 Replace `<your-openai-api-key>` with your valid OpenAI API key.
-
----
-
-## Running the App
-
-### Locally (without Docker)
-```bash
-python app.py
-```
-
-### Using Docker
-```bash
-docker run -p 7860:7860 --env OPENAI_API_KEY=<your-openai-api-key> data-generation-demo
-```
-
-The app will be available at `http://localhost:7860` in your browser.
 
 ---
 
