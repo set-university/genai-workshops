@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 
 # Title
-st.title("Business Sales Dashboard 📊")
+st.title("Business Sales Dashboard")
 
 # 1. Load Dataset
 uploaded_file = st.file_uploader("Upload a CSV file", type="csv")
