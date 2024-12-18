@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt #visualisation library
 import openai
 import json
 from tqdm import tqdm #shows progress bars
-from dotenv import load_dotenv
+from dotenv import load_dotenv #lib to read .env file and add env variables
 
 load_dotenv()
 # Fetch API key
