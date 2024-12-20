@@ -1,18 +1,14 @@
+import os
+
+# Now import everything else
 import streamlit as st
-import boto3
-import json
 from pypdf import PdfReader
 from io import BytesIO
-import chromadb
-import os
-import warnings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from langchain_community.chat_models import BedrockChat
 from langchain.prompts import ChatPromptTemplate
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
@@ -26,10 +22,6 @@ BEDROCK_MODEL = "anthropic.claude-3-sonnet-20240229-v1:0"  # Claude model versio
 AWS_REGION = "us-east-1"  # AWS region for Bedrock
 TEMPERATURE = 0.7  # Temperature for response generation
 MAX_HISTORY = 5  # Maximum number of conversation turns to remember
-
-# Suppress warnings
-warnings.filterwarnings('ignore', category=FutureWarning)
-warnings.filterwarnings('ignore', message='.*Tried to instantiate.*')
 
 # Initialize ChromaDB with persistence
 os.makedirs(PERSIST_DIR, exist_ok=True)

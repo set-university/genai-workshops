@@ -1,76 +1,91 @@
+import os
 import streamlit as st
-import boto3
-import json
 from pypdf import PdfReader
 from io import BytesIO
+from langchain_aws import ChatBedrock
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
 
-st.title("📝 File Q&A with Claude 3.5 Sonnet")
-uploaded_file = st.file_uploader("Upload an article", type=("txt", "md", "pdf"))
-question = st.text_input(
-    "Ask something about the article",
-    placeholder="Can you give me a short summary?",
-    disabled=not uploaded_file,
-)
+# Configuration
+BEDROCK_MODEL = "anthropic.claude-3-sonnet-20240229-v1:0"
+AWS_REGION = "us-east-1"
+TEMPERATURE = 0.7
 
-def read_pdf(file):
-    pdf_reader = PdfReader(file)
-    text = ""
-    for page in pdf_reader.pages:
-        text += page.extract_text() + "\n"
-    return text
-
-if uploaded_file and question:
-    # Read file content based on file type
-    if uploaded_file.type == "application/pdf":
-        article = read_pdf(BytesIO(uploaded_file.read()))
-    else:
-        article = uploaded_file.read().decode()
-    
-    # Show file content in expander
-    with st.expander("View article content"):
-        st.text(article)
-    
-    # Initialize Bedrock client using default AWS configuration
-    bedrock = boto3.client(
-        service_name='bedrock-runtime',
-        region_name='us-east-1'  # Change this if using a different region
+# Initialize LLM
+@st.cache_resource(show_spinner=False)
+def init_llm():
+    return ChatBedrock(
+        model_id=BEDROCK_MODEL,
+        model_kwargs={"temperature": TEMPERATURE},
+        region_name=AWS_REGION
     )
-    
-    # Prepare the prompt
-    prompt = f"""Here's an article:
+
+# Create Chain
+def create_qa_chain(llm):
+    prompt_template = """Here's an article:
 
 <article>
 {article}
 </article>
 
 {question}"""
+    
+    PROMPT = PromptTemplate(
+        template=prompt_template, 
+        input_variables=["article", "question"]
+    )
+    
+    chain = LLMChain(
+        llm=llm,
+        prompt=PROMPT,
+        verbose=True  # Enable chain logging
+    )
+    
+    return chain
 
-    # Prepare the request body
-    body = json.dumps({
-        "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 1000,
-        "messages": [
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ],
-        "temperature": 0.7
-    })
+# Initialize session state
+if 'initialized' not in st.session_state:
+    st.session_state.initialized = True
+    st.session_state.llm = init_llm()
+    st.session_state.chain = create_qa_chain(st.session_state.llm)
 
+# Streamlit UI
+st.title("📝 File Q&A with Claude 3.5 Sonnet")
+
+# File upload
+uploaded_file = st.file_uploader(
+    "Upload an article", 
+    type=("txt", "md", "pdf")
+)
+
+question = st.text_input(
+    "Ask something about the article",
+    placeholder="Can you give me a short summary?",
+    disabled=not uploaded_file,
+)
+
+if uploaded_file and question:
     try:
-        # Invoke the model
-        response = bedrock.invoke_model(
-            modelId='anthropic.claude-3-sonnet-20240229-v1:0',
-            body=body
-        )
+        # Read file content based on file type
+        if uploaded_file.type == "application/pdf":
+            pdf_reader = PdfReader(BytesIO(uploaded_file.read()))
+            article = "\n".join(page.extract_text() for page in pdf_reader.pages)
+        else:
+            article = uploaded_file.read().decode()
         
-        # Parse the response
-        response_body = json.loads(response.get('body').read())
-        answer = response_body['content'][0]['text']
+        # Show file content in expander
+        with st.expander("View article content"):
+            st.text(article)
         
+        # Get answer using LangChain
+        result = st.session_state.chain.invoke({
+            "article": article,
+            "question": question
+        })
+        
+        # Show answer
         st.write("### Answer")
-        st.write(answer)
-        
+        st.write(result["text"])
+            
     except Exception as e:
         st.error(f"Error: {str(e)}")
