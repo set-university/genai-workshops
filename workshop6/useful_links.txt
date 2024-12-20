@@ -1,0 +1,3 @@
+Gradio web-site: https://www.gradio.app/
+Streamlit web-site: https://streamlit.io/
+Git repo: https://github.com/set-university/genai-workshops/tree/feat.workshop6/workshop6/data_generation_demo
