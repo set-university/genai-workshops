@@ -1,6 +1,5 @@
 torch
 gradio
-open_clip_torch
 diffusers
 transformers
 accelerate

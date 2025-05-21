@@ -9,7 +9,7 @@ This workshop demonstrates how to build **AI-powered interactive applications** 
 1. **Set up a Python environment**  
    Create and activate a Conda environment:  
    ```bash
-   conda create -n genai_workshop python=3.9
+   conda create -n genai_workshop python=3.10
    conda activate genai_workshop
    ```  
 
