@@ -16,6 +16,7 @@ resource "aws_iam_role" "bedrock_service_role" {
       },
     ]
   })
+  depends_on = [module.aurora_postgresql_v2]
 
   tags = var.aws_resource_tags
 }
@@ -32,7 +33,7 @@ resource "aws_iam_role_policy" "bedrock_service_role_policy" {
         Action = [
           "bedrock:InvokeModel",
         ]
-        Effect = "Allow"
+        Effect   = "Allow"
         Resource = [local.text_embeddings_model_arn]
       },
       {
@@ -81,6 +82,12 @@ resource "aws_iam_role_policy" "bedrock_service_role_policy" {
       }
     ]
   })
+  depends_on = [module.aurora_postgresql_v2]
+}
+
+resource "time_sleep" "bedrock_role" {
+  create_duration = "60s"
+  depends_on      = [aws_iam_role.bedrock_service_role, aws_iam_role_policy.bedrock_service_role_policy]
 }
 
 resource "awscc_bedrock_knowledge_base" "genai-bedrock-kb" {
@@ -109,6 +116,7 @@ resource "awscc_bedrock_knowledge_base" "genai-bedrock-kb" {
       embedding_model_arn = local.text_embeddings_model_arn
     }
   }
+  depends_on = [time_sleep.bedrock_role]
 
   tags = var.aws_resource_tags
 }
@@ -124,8 +132,9 @@ resource "awscc_bedrock_data_source" "s3_data_source" {
     }
     type = "S3"
   }
+  depends_on = [awscc_bedrock_knowledge_base.genai-bedrock-kb]
 
-  data_deletion_policy = "DELETE"
+  data_deletion_policy = "RETAIN"
 
 }
 

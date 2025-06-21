@@ -12,9 +12,9 @@ variable "genai_foundational_model_id" {
 
 variable "aws_resource_tags" {
   description = "A map of tags to add to AWS resources"
-  type = map(string)
+  type        = map(string)
   default = {
-    Application = "set-genai-module2"
+    Application = "set-genai-aws-workshop"
   }
 }
 
