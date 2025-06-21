@@ -15,6 +15,14 @@ resource "aws_iam_role" "vector_store_cluster_role" {
           Service = "rds.amazonaws.com"
         }
       },
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "bedrock.amazonaws.com"
+        }
+      },
     ]
   })
   tags = var.aws_resource_tags
@@ -100,7 +108,7 @@ module "aurora_postgresql_v2" {
 }
 
 module "vector_store_bedrock_secret" {
-  source = "terraform-aws-modules/secrets-manager/aws"
+  source  = "terraform-aws-modules/secrets-manager/aws"
   version = "1.3.1"
 
   # Secret
