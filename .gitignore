@@ -47,3 +47,7 @@ archive/
 # Logs and databases
 *.log
 *.sqlite
+
+# Terraform files
+terraform.tfstate*
+.terraform*
