@@ -13,3 +13,5 @@ CREATE TABLE bedrock_integration.bedrock_kb (
 GRANT ALL ON TABLE bedrock_integration.bedrock_kb to bedrock_user;
 CREATE INDEX ON bedrock_integration.bedrock_kb
   USING hnsw (embedding vector_cosine_ops);
+CREATE INDEX ON bedrock_integration.bedrock_kb
+  USING gin (to_tsvector('simple', chunks));
