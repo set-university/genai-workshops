@@ -8,6 +8,8 @@ import json              # JSON parsing and serialization
 from tqdm import tqdm    # Progress bar utility for loops
 from dotenv import load_dotenv  # Environment variable loader from .env files
 
+from json_repair import repair_json
+
 # ==========================================
 # API CONFIGURATION
 # ==========================================
@@ -48,7 +50,7 @@ def generate_product_data_sample(product_id):
     try:
         # Call OpenAI's ChatCompletion API with specified parameters
         response = openai.chat.completions.create(
-            model="gpt-4",  # Using GPT-4 for high-quality product descriptions
+            model="gpt-4o-mini",  # Using GPT-4 for high-quality product descriptions
             messages=[
                 {"role": "user", "content": prompt}
             ],
@@ -58,10 +60,10 @@ def generate_product_data_sample(product_id):
         )
 
         # Extract the generated text from the API response
-        generated_text = response.dict()['choices'][0]['message']['content'].strip()
+        generated_text = response.choices[0].message.content.strip()
 
         # Parse the JSON string into a Python dictionary
-        result = json.loads(generated_text)
+        result = json.loads(repair_json(generated_text))
         return result
 
     except (json.JSONDecodeError, KeyError):
@@ -133,7 +135,7 @@ def generate_review_and_rating(product_name, category, description):
     try:
         # Call OpenAI's ChatCompletion API for review generation
         response = openai.chat.completions.create(
-            model="gpt-3.5-turbo",  # Using GPT-3.5 for efficiency with review generation
+            model="gpt-4o-mini",  # Using GPT-3.5 for efficiency with review generation
             messages=[
                 {"role": "user", "content": prompt}
             ],
@@ -143,8 +145,8 @@ def generate_review_and_rating(product_name, category, description):
         )
 
         # Extract and parse the generated text
-        generated_text = response.dict()['choices'][0]['message']['content'].strip()
-        result = json.loads(generated_text)
+        generated_text = response.choices[0].message.content.strip()
+        result = json.loads(repair_json(generated_text))
         
         # Extract review and rating with defaults in case of missing fields
         return result.get("review", "Error generating review"), result.get("rating", 3.0)

@@ -6,14 +6,27 @@ This workshop demonstrates how to build **AI-powered interactive applications** 
 
 ## ⚙️ **Setup Instructions**  
 
-1. **Set up a Python environment**  
+1. **Install Conda**  
+   If you don't have Conda installed, download and install **Miniconda** (lightweight) or **Anaconda** (full distribution):
+
+   - **Miniconda (recommended):** [https://docs.conda.io/en/latest/miniconda.html](https://docs.conda.io/en/latest/miniconda.html)  
+   - **Anaconda:** [https://www.anaconda.com/download](https://www.anaconda.com/download)
+
+   After installation, verify it works:
+   ```bash
+   conda --version
+   ```
+
+   > **Note (macOS/Linux):** You may need to restart your terminal or run `source ~/.bashrc` / `source ~/.zshrc` after installation for the `conda` command to be available.
+
+2. **Set up a Python environment**  
    Create and activate a Conda environment:  
    ```bash
    conda create -n genai_workshop python=3.10
    conda activate genai_workshop
    ```  
 
-2. **Install dependencies**  
+3. **Install dependencies**  
    Make sure `pip` is up-to-date and install the required libraries:  
    ```bash
    pip install -r requirements.txt
