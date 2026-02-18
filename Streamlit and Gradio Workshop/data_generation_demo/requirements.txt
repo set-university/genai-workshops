@@ -1,7 +1,0 @@
-pandas
-numpy
-openai
-gradio
-tqdm
-matplotlib
-python-dotenv

@@ -1,7 +1,4 @@
 gradio>=6.5
-streamlit>=1.54
 openai>=2.21
-pandas>=2.2
 numpy>=1.26
-plotly>=6.0
 python-dotenv>=1.0
