@@ -49,3 +49,43 @@ cd voice_assistant_demo && python app.py
 # Demo 3: AI Analytics Dashboard
 cd analytics_dashboard_demo && streamlit run app.py
 ```
+
+## Deployment
+
+Gradio apps are easy to share and deploy beyond your local machine:
+
+### Quick sharing
+
+Run with `share=True` — Gradio generates a public `*.gradio.live` URL (valid for 72 hours). Perfect for quick demos, client reviews, or sharing with another team.
+
+### Hugging Face Spaces
+
+Deploy your Gradio app directly to [Hugging Face Spaces](https://huggingface.co/spaces) — free hosting with GPU support. Just push your code to a HF repo and it runs automatically.
+
+### Docker
+
+Containerize any demo to ship to a client, hand off to another team, or deploy to any cloud. Example for `multimodal_chat_demo`:
+
+```dockerfile
+FROM python:3.10-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+EXPOSE 7860
+
+CMD ["python", "app.py"]
+```
+
+```bash
+# Build and run
+cd multimodal_chat_demo
+docker build -t multimodal-chat .
+docker run -p 7860:7860 -e OPENAI_API_KEY=your-key-here multimodal-chat
+```
+
+The same approach works for any demo — just change the port and entry command (`streamlit run app.py` for Streamlit).

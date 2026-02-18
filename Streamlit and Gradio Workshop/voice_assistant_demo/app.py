@@ -9,8 +9,18 @@ from dotenv import load_dotenv
 load_dotenv()
 client = OpenAI()
 
+LANGUAGES = {
+    "English": {"code": "en", "system": "Respond in English."},
+    "Ukrainian": {"code": "uk", "system": "Відповідай українською мовою."},
+    "Spanish": {"code": "es", "system": "Responde en español."},
+    "French": {"code": "fr", "system": "Réponds en français."},
+    "German": {"code": "de", "system": "Antworte auf Deutsch."},
+    "Polish": {"code": "pl", "system": "Odpowiadaj po polsku."},
+    "Japanese": {"code": "ja", "system": "日本語で答えてください。"},
+}
 
-def transcribe_audio(audio_tuple):
+
+def transcribe_audio(audio_tuple, language):
     """Send recorded audio to Whisper and return the transcript."""
     if audio_tuple is None:
         return "", ""
@@ -32,18 +42,24 @@ def transcribe_audio(audio_tuple):
         wf.setframerate(sr)
         wf.writeframes(audio_data.tobytes())
 
+    lang_code = LANGUAGES.get(language, LANGUAGES["English"])["code"]
+
     with open(tmp.name, "rb") as f:
-        transcript = client.audio.transcriptions.create(model="whisper-1", file=f)
+        transcript = client.audio.transcriptions.create(
+            model="whisper-1", file=f, language=lang_code,
+        )
 
     Path(tmp.name).unlink(missing_ok=True)
     return transcript.text, ""
 
 
-def respond(user_text, history):
+def respond(user_text, history, language):
     """Generate a streaming chat response via GPT-4o, then speak it with TTS."""
     if not user_text.strip():
         yield history, None
         return
+
+    lang_instruction = LANGUAGES.get(language, LANGUAGES["English"])["system"]
 
     history = history + [
         {"role": "user", "content": user_text},
@@ -51,7 +67,7 @@ def respond(user_text, history):
     ]
 
     messages = [
-        {"role": "system", "content": "You are a helpful voice assistant. Keep your answers concise (2-3 sentences) since they will be spoken aloud."},
+        {"role": "system", "content": f"You are a helpful voice assistant. Keep your answers concise (2-3 sentences) since they will be spoken aloud. {lang_instruction}"},
     ] + [{"role": h["role"], "content": h["content"]} for h in history[:-1]]
 
     stream = client.chat.completions.create(
@@ -85,11 +101,12 @@ def respond(user_text, history):
 with gr.Blocks(title="Voice Assistant") as demo:
     gr.Markdown("# Voice Assistant\nSpeak into your microphone or type — the AI responds with text and voice.")
 
-    chatbot = gr.Chatbot(type="messages", height=400)
+    chatbot = gr.Chatbot(height=400)
 
     with gr.Row():
         mic = gr.Audio(sources=["microphone"], label="Record", type="numpy")
         text_input = gr.Textbox(label="Or type here", placeholder="Type your message...", scale=3)
+        lang = gr.Dropdown(choices=list(LANGUAGES.keys()), value="English", label="Language", scale=1)
 
     audio_out = gr.Audio(label="AI Response (audio)", autoplay=True, visible=True)
 
@@ -97,17 +114,17 @@ with gr.Blocks(title="Voice Assistant") as demo:
 
     mic.stop_recording(
         fn=transcribe_audio,
-        inputs=[mic],
+        inputs=[mic, lang],
         outputs=[text_input, transcript_box],
     ).then(
         fn=respond,
-        inputs=[text_input, chatbot],
+        inputs=[text_input, chatbot, lang],
         outputs=[chatbot, audio_out],
     )
 
     text_input.submit(
         fn=respond,
-        inputs=[text_input, chatbot],
+        inputs=[text_input, chatbot, lang],
         outputs=[chatbot, audio_out],
     ).then(
         fn=lambda: "",
@@ -116,4 +133,4 @@ with gr.Blocks(title="Voice Assistant") as demo:
 
 
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7861)
+    demo.launch(server_name="0.0.0.0", server_port=7861, share=True)
