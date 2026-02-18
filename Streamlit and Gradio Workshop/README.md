@@ -1,52 +1,51 @@
-# Dynamic AI-Powered Application Workshop 🚀  
+# Gradio & Streamlit Workshop
 
-This workshop demonstrates how to build **AI-powered interactive applications** using **Gradio** and **AI models**. By uploading inputs (e.g., images, text), the app processes the data and generates results based on predefined prompts or models.
+Three demos showcasing when and why to use **Gradio** vs **Streamlit** for AI-powered applications.
 
----
+## Demos
 
-## ⚙️ **Setup Instructions**  
+| Demo | Framework | Description |
+|------|-----------|-------------|
+| [**Multi-modal AI Chat**](multimodal_chat_demo/) | Gradio | Chat with GPT-4o — send text, images, files. Streaming responses. |
+| [**Voice Assistant**](voice_assistant_demo/) | Gradio | Speak into the mic → Whisper transcribes → GPT-4o responds → TTS speaks back. |
+| [**AI Analytics Dashboard**](analytics_dashboard_demo/) | Streamlit | Multi-page app: dashboard + chat with your data + interactive data editor. |
 
-1. **Install Conda**  
-   If you don't have Conda installed, download and install **Miniconda** (lightweight) or **Anaconda** (full distribution):
+## When to use what?
 
-   - **Miniconda (recommended):** [https://docs.conda.io/en/latest/miniconda.html](https://docs.conda.io/en/latest/miniconda.html)  
-   - **Anaconda:** [https://www.anaconda.com/download](https://www.anaconda.com/download)
+**Gradio** — best for wrapping AI/ML models in a web UI:
+- Multimodal inputs (images, audio, video, files) as first-class components
+- Real-time streaming and media processing
+- Quick prototyping: production-ready chat UI in ~10 lines
+- Ideal for: chatbots, voice apps, image/video processing, model demos
 
-   After installation, verify it works:
-   ```bash
-   conda --version
-   ```
+**Streamlit** — best for data applications and dashboards:
+- Native multi-page apps with shared state
+- Interactive data editing (`st.data_editor`)
+- Rich layout: sidebar filters, columns, metrics, charts
+- Ideal for: dashboards, analytics tools, data exploration, internal tools
 
-   > **Note (macOS/Linux):** You may need to restart your terminal or run `source ~/.bashrc` / `source ~/.zshrc` after installation for the `conda` command to be available.
+## Setup
 
-2. **Set up a Python environment**  
-   Create and activate a Conda environment:  
-   ```bash
-   conda create -n genai_workshop python=3.10
-   conda activate genai_workshop
-   ```  
+```bash
+conda create -n genai_workshop python=3.10
+conda activate genai_workshop
+pip install -r requirements.txt
+```
 
-3. **Install dependencies**  
-   Make sure `pip` is up-to-date and install the required libraries:  
-   ```bash
-   pip install -r requirements.txt
-   ```  
+Create a `.env` file in the root directory:
+```
+OPENAI_API_KEY=your-key-here
+```
 
----
+## Run
 
-## 🌟 **Example Use Cases**  
-In this workshop you can see:
-1. **Image processing demo**  
-   - Classify images into predefined categories (e.g., photos of cats, cars, beaches).  
-   - Build apps combining **images and text** inputs to create dynamic workflows.   
+```bash
+# Demo 1: Multi-modal AI Chat
+cd multimodal_chat_demo && python app.py
 
-2. **Tabular data demo**
-   - Review and analyze tabular data
+# Demo 2: Voice Assistant
+cd voice_assistant_demo && python app.py
 
-3. **Data generation demo**  
-   - Generate tabular data based on prompt.
-   - Generate text summaries for uploaded documents.  
-   - Sentiment analysis on user-provided text. 
-
----
-### 🎉 **Happy Coding! 🚀**  
+# Demo 3: AI Analytics Dashboard
+cd analytics_dashboard_demo && streamlit run app.py
+```
