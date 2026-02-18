@@ -28,10 +28,10 @@ PERSIST_DIR = "db"  # ChromaDB persistence directory
 CHUNK_SIZE = 1000   # Size of text chunks
 CHUNK_OVERLAP = 200  # Overlap between chunks
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"  # Model for embeddings
-NUM_CHUNKS = 3  # Number of relevant chunks to retrieve
-BEDROCK_MODEL = "anthropic.claude-3-sonnet-20240229-v1:0"
+NUM_CHUNKS = 10  # Number of relevant chunks to retrieve
+BEDROCK_MODEL = "anthropic.claude-sonnet-4-20250514-v1:0"
 AWS_REGION = "us-east-1"
-TEMPERATURE = 0.7
+TEMPERATURE = 0.1
 
 # Initialize embeddings and vectorstore
 @st.cache_resource(show_spinner=False)
@@ -68,6 +68,8 @@ def create_qa_chain(vectorstore, llm):
     Context: {context}
     
     Question: {question}
+
+    If you doesn't have answer from the cotext, write "I can not answer based on the context".
     
     Answer:"""
     

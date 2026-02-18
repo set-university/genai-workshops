@@ -47,3 +47,8 @@ archive/
 # Logs and databases
 *.log
 *.sqlite
+
+# BMad
+_bmad-output/
+_bmad/
+.claude/
