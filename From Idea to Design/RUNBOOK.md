@@ -117,6 +117,8 @@ Run `/bmad-bmm-market-research` in a new chat.
 
 **What you'll get:** A market research document with competitor analysis, market positioning, and opportunity gaps.
 
+**Requires web search.** Claude Code with a Pro/Max subscription has WebSearch built-in — no setup needed. If you're using Cursor, Windsurf, or Claude Code via API (Bedrock, Console), you need Firecrawl MCP configured first (see [INSTALL.md](INSTALL.md#web-search-for-market-research)).
+
 **Tip:** Don't skip this even if your idea feels unique. The agent will find adjacent solutions you haven't thought of, which helps sharpen your positioning and avoid blind spots.
 
 ---

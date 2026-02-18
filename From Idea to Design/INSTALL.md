@@ -35,6 +35,33 @@ If you prefer a different tool, any of these will work:
 
 All three tools support the AI-assisted coding workflow we use in the workshops. Choose one, make sure it works, and you're good to go.
 
+### Web search for market research
+
+The market research workflow (Step 3) requires web search to find competitors and market data.
+
+- **Claude Code with Pro/Max subscription** — WebSearch is built-in. No extra setup needed.
+- **Cursor, Windsurf, or Claude Code via API (Bedrock, Console)** — WebSearch is **not** included. You need to set up an MCP server for web search. We recommend [Firecrawl](https://firecrawl.dev):
+
+  1. Register at [firecrawl.dev](https://firecrawl.dev) (free tier: 500 credits, enough for the workshop)
+  2. Get your API key from the dashboard
+  3. Add Firecrawl MCP to your project by creating `.mcp.json` in your project root:
+
+     ```json
+     {
+       "mcpServers": {
+         "firecrawl": {
+           "command": "npx",
+           "args": ["-y", "firecrawl-mcp"],
+           "env": {
+             "FIRECRAWL_API_KEY": "your-api-key-here"
+           }
+         }
+       }
+     }
+     ```
+
+  4. Restart your AI coding tool — it should detect the MCP server automatically
+
 ## 2. Node.js (required)
 
 Install **Node.js 20+** from [nodejs.org](https://nodejs.org). Verify with:
