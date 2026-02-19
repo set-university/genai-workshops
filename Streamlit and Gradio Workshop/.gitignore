@@ -1,5 +1,4 @@
 .env
-*.csv
 !tabular_data_demo/*.csv
 *.DS_Store
 __pycache__
