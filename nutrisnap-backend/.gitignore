@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+
+# Testing
+.pytest_cache/
+
+# Linting
+.ruff_cache/
+
+# Environment
+.env
+
+# Database
+*.db
+
+# IDE
+.idea/
+.vscode/
