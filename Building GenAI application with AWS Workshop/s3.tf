@@ -14,9 +14,9 @@ module "genai_document_bucket" {
 }
 
 resource "aws_s3_object" "object" {
-  bucket = module.genai_document_bucket.s3_bucket_id
-  key    = "postgresql-16-A4.pdf"
-  source = "documents/postgresql-16-A4.pdf"
-  etag = filemd5("documents/postgresql-16-A4.pdf")
+  bucket     = module.genai_document_bucket.s3_bucket_id
+  key        = "postgresql-16-A4.pdf"
+  source     = "documents/postgresql-16-A4.pdf"
+  etag       = filemd5("documents/postgresql-16-A4.pdf")
   depends_on = [module.genai_document_bucket]
 }

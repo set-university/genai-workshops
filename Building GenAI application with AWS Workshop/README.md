@@ -58,7 +58,7 @@ see [Model access](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ac
    ```
 2. Change directory to the pattern directory:
     ```bash
-    cd workshop4
+    cd Building\ GenAI\ application\ with\ AWS\ Workshop
     ```
 3. Init terraform:
     ```bash
@@ -100,7 +100,7 @@ Follow the example below and replace `{your-lambda-url}` with your Lambda url fr
 ```bash
  curl -X POST 'https://{your-lambda-url}/' \
    -H 'content-type: application/json' \
-   -d '{ "prompt": "what are the postgres versions?" }'
+   -d '{ "prompt": "Describe how pg_stat_io tracks I/O activity in PostgreSQL." }'
 ```
 
 The response might look like as follows:
