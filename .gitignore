@@ -48,6 +48,26 @@ archive/
 *.log
 *.sqlite
 
+# Node.js
+node_modules/
+
+# TypeScript build artifacts
+*.tsbuildinfo
+*.d.ts.map
+
+# AWS CDK
+cdk.out/
+.cdk.staging/
+cdk.context.json
+
+# AWS Amplify
+.amplify/
+amplify_outputs.json
+
+# Local environment overrides
+.env.local
+.env.*.local
+
 # BMad
 _bmad-output/
 _bmad/
