@@ -189,6 +189,17 @@ export class AgentStack extends cdk.Stack {
       resources: [`arn:aws:cognito-idp:${this.region}:${this.account}:userpool/${userPoolId}`]
     }));
 
+    agentRole.addToPolicy(new iam.PolicyStatement({
+      sid: 'Marketplace',
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'aws-marketplace:*'
+      ],
+      resources: [
+        `*`
+      ]
+    }));
+
     // 3. Create main agent runtime using L2 construct
     const baseEnvVars = {
       MEMORY_ID: memory.memoryId,

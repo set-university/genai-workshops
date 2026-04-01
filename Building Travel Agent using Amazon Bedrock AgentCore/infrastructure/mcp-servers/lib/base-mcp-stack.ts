@@ -70,6 +70,17 @@ export abstract class BaseMcpStack extends cdk.Stack {
       ]
     }));
 
+    this.role.addToPolicy(new iam.PolicyStatement({
+      sid: 'Marketplace',
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'aws-marketplace:*'
+      ],
+      resources: [
+        `*`
+      ]
+    }));
+
     // Add additional policies if provided
     if (props.additionalPolicies) {
       props.additionalPolicies.forEach(policy => this.role.addToPolicy(policy));
